@@ -1,0 +1,12 @@
+# Ignorar entorno virtual
+.venv/
+venv/
+
+# Ignorar dependencias de Python
+__pycache__/
+
+# Ignorar archivos de Java (si tienes ambos proyectos)
+target/
+
+# Ignorar configuraciones del sistema
+.DS_Store
