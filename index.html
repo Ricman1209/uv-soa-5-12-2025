@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Académica UV</title>
+    <style>
+        :root {
+            --primary: #1a365d; --primary-light: #2c5282; --accent: #38a169; --danger: #e53e3e;
+            --bg-main: #f7fafc; --bg-card: #fff; --text-primary: #1a202c; --text-muted: #718096; --border: #e2e8f0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-main); color: var(--text-primary); }
+        .header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; padding: 1.2rem 2rem; }
+        .header-content { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo h1 { font-size: 1.3rem; } .logo span { font-size: 0.8rem; opacity: 0.8; }
+        .status-indicators { display: flex; gap: 0.8rem; }
+        .status-badge { display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.7rem; background: rgba(255,255,255,0.15); border-radius: 15px; font-size: 0.7rem; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #48bb78; }
+        .status-dot.offline { background: var(--danger); }
+        .main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+        .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; background: var(--bg-card); padding: 0.4rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        .tab-btn { flex: 1; padding: 0.8rem; border: none; background: transparent; font-weight: 600; cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .tab-btn:hover { background: var(--bg-main); }
+        .tab-btn.active { background: var(--primary); color: #fff; }
+        .tab-content { display: none; } .tab-content.active { display: block; }
+        .grid { display: grid; grid-template-columns: 360px 1fr; gap: 1.5rem; }
+        @media (max-width: 850px) { .grid { grid-template-columns: 1fr; } }
+        .card { background: var(--bg-card); border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); overflow: hidden; }
+        .card-header { padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 0.95rem; }
+        .card-body { padding: 1.1rem; }
+        .form-group { margin-bottom: 0.9rem; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.3rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.55rem 0.8rem; border: 1.5px solid var(--border); border-radius: 6px; font-size: 0.85rem; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .btn { padding: 0.55rem 1rem; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: #fff; } .btn-primary:hover { background: var(--primary-light); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text-muted); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-sm { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
+        .btn-block { width: 100%; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 0.9rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 0.65rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); background: var(--bg-main); }
+        tbody tr:hover { background: var(--bg-main); }
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.65rem; font-weight: 600; }
+        .badge-success { background: #c6f6d5; color: #22543d; }
+        .badge-warning { background: #feebc8; color: #744210; }
+        .badge-danger { background: #fed7d7; color: #822727; }
+        .msg { padding: 0.7rem; border-radius: 6px; margin-bottom: 0.8rem; font-size: 0.8rem; }
+        .msg-success { background: #c6f6d5; color: #22543d; }
+        .msg-error { background: #fed7d7; color: #822727; }
+        .msg-info { background: #bee3f8; color: #2a4365; }
+        .empty { text-align: center; padding: 2rem; color: var(--text-muted); }
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-bg.active { display: flex; }
+        .modal { background: #fff; border-radius: 10px; padding: 1.5rem; max-width: 350px; width: 90%; text-align: center; }
+        .modal h3 { margin-bottom: 0.4rem; } .modal p { color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem; }
+        .modal-btns { display: flex; gap: 0.8rem; justify-content: center; }
+        hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div><h1>🎓 Plataforma Académica</h1><span>Universidad Veracruzana</span></div>
+            </div>
+            <div class="status-indicators">
+                <div class="status-badge"><div class="status-dot" id="soap-status"></div><span>SOAP :8000</span></div>
+                <div class="status-badge"><div class="status-dot" id="rest-status"></div><span>REST :8080</span></div>
+            </div>
+        </div>
+    </header>
+    <main class="main">
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="alumnos">👤 Alumnos <small style="opacity:0.7">(SOAP)</small></button>
+            <button class="tab-btn" data-tab="cursos">📚 Cursos <small style="opacity:0.7">(REST)</small></button>
+        </nav>
+
+        <!-- ALUMNOS TAB -->
+        <div id="alumnos-tab" class="tab-content active">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📝 <span id="form-alumno-title">Registrar Alumno</span></h2>
+                        <button class="btn btn-outline btn-sm" onclick="limpiarFormAlumno()">Nuevo</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="alumno-msg"></div>
+                        <form id="form-alumno" onsubmit="guardarAlumno(event)">
+                            <input type="hidden" id="alumno-modo" value="crear">
+                            <div class="form-group">
+                                <label>Matrícula *</label>
+                                <input type="text" id="alumno-matricula" placeholder="ej: zS19004" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Nombre *</label><input type="text" id="alumno-nombre" required></div>
+                                <div class="form-group"><label>Apellido Paterno *</label><input type="text" id="alumno-ap" required></div>
+                            </div>
+                            <div class="form-group"><label>Apellido Materno</label><input type="text" id="alumno-am"></div>
+                            <div class="form-group"><label>Email *</label><input type="email" id="alumno-email" required></div>
+                            <div class="form-group" id="grp-estatus" style="display:none">
+                                <label>Estatus</label>
+                                <select id="alumno-estatus"><option>ACTIVO</option><option>BAJA</option><option>GRADUADO</option></select>
+                            </div>
+                            <div class="btn-group"><button type="submit" class="btn btn-primary btn-block" id="btn-alumno">💾 Registrar</button></div>
+                        </form>
+                        <hr>
+                        <div class="form-group">
+                            <label>🔍 Buscar por Matrícula (para editar)</label>
+                            <div style="display:flex;gap:0.4rem">
+                                <input type="text" id="buscar-mat" placeholder="Matrícula">
+                                <button type="button" class="btn btn-outline" onclick="buscarAlumno()">Buscar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Lista de Alumnos</h2>
+                        <button class="btn btn-outline btn-sm" onclick="cargarAlumnos()">🔄</button>
+                    </div>
+                    <div class="card-body" style="padding:0">
+                        <table><thead><tr><th>Matrícula</th><th>Nombre</th><th>Email</th><th>Estatus</th><th>Acciones</th></tr></thead>
+                        <tbody id="tbl-alumnos"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CURSOS TAB -->
+        <div id="cursos-tab" class="tab-content">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-header"><h2>📝 Registrar Curso</h2><button class="btn btn-outline btn-sm" onclick="limpiarFormCurso()">Nuevo</button></div>
+                    <div class="card-body">
+                        <div id="curso-msg"></div>
+                        <form id="form-curso" onsubmit="guardarCurso(event)">
+                            <div class="form-row">
+                                <div class="form-group"><label>Código *</label><input type="text" id="curso-codigo" required></div>
+                                <div class="form-group"><label>Créditos *</label><input type="number" id="curso-creditos" min="1" required></div>
+                            </div>
+                            <div class="form-group"><label>Nombre *</label><input type="text" id="curso-nombre" required></div>
+                            <div class="form-group"><label>Descripción</label><textarea id="curso-desc" rows="2"></textarea></div>
+                            <div class="btn-group"><button type="submit" class="btn btn-primary btn-block">💾 Registrar Curso</button></div>
+                        </form>
+                        <hr>
+                        <h4 style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.8rem">🗑️ Eliminar por Criterio</h4>
+                        <div class="form-group">
+                            <label>Por Nombre exacto</label>
+                            <div style="display:flex;gap:0.4rem">
+                                <input type="text" id="del-nombre" placeholder="Nombre del curso">
+                                <button class="btn btn-danger btn-sm" onclick="eliminarPorNombre()">Eliminar</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Por Fecha de Creación</label>
+                            <div style="display:flex;gap:0.4rem">
+                                <input type="date" id="del-fecha">
+                                <button class="btn btn-danger btn-sm" onclick="eliminarPorFecha()">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h2>📋 Lista de Cursos</h2><button class="btn btn-outline btn-sm" onclick="cargarCursos()">🔄</button></div>
+                    <div class="card-body" style="padding:0">
+                        <div style="padding:0.8rem 0.8rem 0"><input type="text" id="buscar-curso" placeholder="🔍 Buscar cursos..." oninput="filtrarCursos()" style="width:100%;padding:0.5rem;border:1.5px solid var(--border);border-radius:6px"></div>
+                        <table><thead><tr><th>ID</th><th>Código</th><th>Nombre</th><th>Créd.</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                        <tbody id="tbl-cursos"><tr><td colspan="6" class="empty">Cargando...</td></tr></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Confirmación -->
+    <div class="modal-bg" id="modal">
+        <div class="modal">
+            <h3>⚠️ Confirmar</h3>
+            <p id="modal-msg">¿Eliminar este registro?</p>
+            <div class="modal-btns">
+                <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn btn-danger" id="btn-confirm">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================== CONFIGURACIÓN =====================
+        // Ajusta estos puertos según tu configuración
+        const SOAP_PROXY = 'http://127.0.0.1:5000/api/alumnos';  // Proxy HTTP para SOAP
+        const API_REST = 'http://127.0.0.1:8080/api/cursos';      // API REST Java
+        
+        let cursosCache = [];
+
+        // ===================== TABS =====================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+            };
+        });
+
+        // ===================== UTILIDADES =====================
+        const msg = (id, tipo, txt) => {
+            document.getElementById(id).innerHTML = `<div class="msg msg-${tipo}">${tipo==='success'?'✅':tipo==='error'?'❌':'ℹ️'} ${txt}</div>`;
+            setTimeout(() => document.getElementById(id).innerHTML = '', 4000);
+        };
+
+        const checkServices = () => {
+            fetch(SOAP_PROXY).then(r => document.getElementById('soap-status').classList.toggle('offline', !r.ok)).catch(() => document.getElementById('soap-status').classList.add('offline'));
+            fetch(API_REST + '/health').then(r => document.getElementById('rest-status').classList.toggle('offline', !r.ok)).catch(() => document.getElementById('rest-status').classList.add('offline'));
+        };
+
+        // ===================== ALUMNOS (SOAP via Proxy) =====================
+        async function cargarAlumnos() {
+            try {
+                const res = await fetch(SOAP_PROXY);
+                const data = await res.json();
+                const tbody = document.getElementById('tbl-alumnos');
+                if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">Sin registros</td></tr>'; return; }
+                tbody.innerHTML = data.map(a => `<tr>
+                    <td><code>${a.matricula||''}</code></td>
+                    <td>${a.nombre||''} ${a.apellido_paterno||''}</td>
+                    <td>${a.email||''}</td>
+                    <td><span class="badge ${a.estatus==='ACTIVO'?'badge-success':a.estatus==='BAJA'?'badge-danger':'badge-warning'}">${a.estatus||''}</span></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="editarAlumno('${a.matricula}')">✏️</button> <button class="btn btn-danger btn-sm" onclick="confirmElimAlumno('${a.matricula}')">🗑️</button></td>
+                </tr>`).join('');
+            } catch(e) { document.getElementById('tbl-alumnos').innerHTML = '<tr><td colspan="5" class="empty">⚠️ Error conexión SOAP</td></tr>'; }
+        }
+
+        async function guardarAlumno(e) {
+            e.preventDefault();
+            const modo = document.getElementById('alumno-modo').value;
+            const mat = document.getElementById('alumno-matricula').value;
+            const data = {
+                matricula: mat,
+                nombre: document.getElementById('alumno-nombre').value,
+                apellido_paterno: document.getElementById('alumno-ap').value,
+                apellido_materno: document.getElementById('alumno-am').value,
+                email: document.getElementById('alumno-email').value,
+                estatus: document.getElementById('alumno-estatus').value
+            };
+            try {
+                const res = await fetch(modo==='editar'?`${SOAP_PROXY}/${mat}`:SOAP_PROXY, {
+                    method: modo==='editar'?'PUT':'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const r = await res.json();
+                if (r.exito==='true'||r.exito===true) { msg('alumno-msg','success',r.mensaje); limpiarFormAlumno(); cargarAlumnos(); }
+                else msg('alumno-msg','error',r.mensaje);
+            } catch(e) { msg('alumno-msg','error','Error de conexión'); }
+        }
+
+        async function buscarAlumno() {
+            const mat = document.getElementById('buscar-mat').value.trim();
+            if (!mat) { msg('alumno-msg','error','Ingrese matrícula'); return; }
+            try {
+                const res = await fetch(`${SOAP_PROXY}/${mat}`);
+                const r = await res.json();
+                if (r.exito==='true' && r.alumno) {
+                    const a = r.alumno;
+                    document.getElementById('alumno-modo').value = 'editar';
+                    document.getElementById('alumno-matricula').value = a.matricula||'';
+                    document.getElementById('alumno-matricula').readOnly = true;
+                    document.getElementById('alumno-nombre').value = a.nombre||'';
+                    document.getElementById('alumno-ap').value = a.apellido_paterno||'';
+                    document.getElementById('alumno-am').value = a.apellido_materno||'';
+                    document.getElementById('alumno-email').value = a.email||'';
+                    document.getElementById('alumno-estatus').value = a.estatus||'ACTIVO';
+                    document.getElementById('grp-estatus').style.display = 'block';
+                    document.getElementById('form-alumno-title').textContent = 'Editar Alumno';
+                    document.getElementById('btn-alumno').textContent = '💾 Actualizar';
+                    msg('alumno-msg','info','Alumno cargado para edición');
+                } else msg('alumno-msg','error',r.mensaje||'No encontrado');
+            } catch(e) { msg('alumno-msg','error','Error de conexión'); }
+        }
+
+        function editarAlumno(mat) { document.getElementById('buscar-mat').value = mat; buscarAlumno(); }
+
+        function confirmElimAlumno(mat) {
+            document.getElementById('modal-msg').textContent = `¿Eliminar alumno ${mat}?`;
+            document.getElementById('btn-confirm').onclick = () => eliminarAlumno(mat);
+            document.getElementById('modal').classList.add('active');
+        }
+
+        async function eliminarAlumno(mat) {
+            cerrarModal();
+            try {
+                const res = await fetch(`${SOAP_PROXY}/${mat}`, {method:'DELETE'});
+                const r = await res.json();
+                if (r.exito==='true'||r.exito===true) { msg('alumno-msg','success',r.mensaje); cargarAlumnos(); }
+                else msg('alumno-msg','error',r.mensaje);
+            } catch(e) { msg('alumno-msg','error','Error'); }
+        }
+
+        function limpiarFormAlumno() {
+            document.getElementById('form-alumno').reset();
+            document.getElementById('alumno-modo').value = 'crear';
+            document.getElementById('alumno-matricula').readOnly = false;
+            document.getElementById('grp-estatus').style.display = 'none';
+            document.getElementById('form-alumno-title').textContent = 'Registrar Alumno';
+            document.getElementById('btn-alumno').textContent = '💾 Registrar';
+            document.getElementById('buscar-mat').value = '';
+        }
+
+        // ===================== CURSOS (REST) =====================
+        async function cargarCursos() {
+            try {
+                const res = await fetch(API_REST);
+                cursosCache = await res.json();
+                renderCursos(cursosCache);
+            } catch(e) { document.getElementById('tbl-cursos').innerHTML = '<tr><td colspan="6" class="empty">⚠️ Error REST</td></tr>'; }
+        }
+
+        function renderCursos(cursos) {
+            const tbody = document.getElementById('tbl-cursos');
+            if (!cursos.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Sin registros</td></tr>'; return; }
+            tbody.innerHTML = cursos.map(c => `<tr>
+                <td>${c.id}</td>
+                <td><code>${c.codigo||''}</code></td>
+                <td>${c.nombre||''}</td>
+                <td><span class="badge badge-success">${c.creditos||0}</span></td>
+                <td>${c.fechaCreacion?new Date(c.fechaCreacion).toLocaleDateString('es-MX'):'N/A'}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="confirmElimCurso(${c.id},'${(c.nombre||'').replace(/'/g,"\\'")}')">🗑️</button></td>
+            </tr>`).join('');
+        }
+
+        function filtrarCursos() {
+            const t = document.getElementById('buscar-curso').value.toLowerCase();
+            renderCursos(cursosCache.filter(c => (c.nombre||'').toLowerCase().includes(t) || (c.codigo||'').toLowerCase().includes(t)));
+        }
+
+        async function guardarCurso(e) {
+            e.preventDefault();
+            const data = {
+                codigo: document.getElementById('curso-codigo').value,
+                nombre: document.getElementById('curso-nombre').value,
+                descripcion: document.getElementById('curso-desc').value,
+                creditos: parseInt(document.getElementById('curso-creditos').value)
+            };
+            try {
+                const res = await fetch(API_REST, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+                const r = await res.json();
+                if (r.exito) { msg('curso-msg','success',r.mensaje); limpiarFormCurso(); cargarCursos(); }
+                else msg('curso-msg','error',r.mensaje);
+            } catch(e) { msg('curso-msg','error','Error de conexión'); }
+        }
+
+        function confirmElimCurso(id, nombre) {
+            document.getElementById('modal-msg').textContent = `¿Eliminar "${nombre}"?`;
+            document.getElementById('btn-confirm').onclick = () => eliminarCursoId(id);
+            document.getElementById('modal').classList.add('active');
+        }
+
+        async function eliminarCursoId(id) {
+            cerrarModal();
+            try {
+                const res = await fetch(`${API_REST}/${id}`, {method:'DELETE'});
+                const r = await res.json();
+                if (r.exito) { msg('curso-msg','success',r.mensaje); cargarCursos(); }
+                else msg('curso-msg','error',r.mensaje);
+            } catch(e) { msg('curso-msg','error','Error'); }
+        }
+
+        async function eliminarPorNombre() {
+            const n = document.getElementById('del-nombre').value.trim();
+            if (!n) { msg('curso-msg','error','Ingrese nombre'); return; }
+            try {
+                const res = await fetch(`${API_REST}/nombre/${encodeURIComponent(n)}`, {method:'DELETE'});
+                const r = await res.json();
+                if (r.exito) { msg('curso-msg','success',r.mensaje); document.getElementById('del-nombre').value=''; cargarCursos(); }
+                else msg('curso-msg','error',r.mensaje);
+            } catch(e) { msg('curso-msg','error','Error'); }
+        }
+
+        async function eliminarPorFecha() {
+            const f = document.getElementById('del-fecha').value;
+            if (!f) { msg('curso-msg','error','Seleccione fecha'); return; }
+            try {
+                const res = await fetch(`${API_REST}/fecha/${f}`, {method:'DELETE'});
+                const r = await res.json();
+                if (r.exito) { msg('curso-msg','success',r.mensaje); document.getElementById('del-fecha').value=''; cargarCursos(); }
+                else msg('curso-msg','error',r.mensaje);
+            } catch(e) { msg('curso-msg','error','Error'); }
+        }
+
+        function limpiarFormCurso() { document.getElementById('form-curso').reset(); }
+        function cerrarModal() { document.getElementById('modal').classList.remove('active'); }
+        document.getElementById('modal').onclick = e => { if(e.target===e.currentTarget) cerrarModal(); };
+
+        // ===================== INIT =====================
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarAlumnos();
+            cargarCursos();
+            checkServices();
+            setInterval(checkServices, 30000);
+        });
+    </script>
+</body>
+</html>
